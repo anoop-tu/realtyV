@@ -15,22 +15,19 @@ export default async function DashboardLayout({ children }: { children: React.Re
       },
     }
   );
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
 
-  if (!session) {
+  // Use getUser for secure user verification
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  const user = userData?.user;
+  if (!user || userError) {
     redirect('/admin/login');
   }
 
   // Fetch user profile to check role
-  const {
-    data: profile,
-    error,
-  } = await supabase
+  const { data: profile, error } = await supabase
     .from('profiles')
     .select('role')
-    .eq('id', session.user.id)
+    .eq('id', user.id)
     .single();
 
   if (error || !profile || profile.role !== 'admin') {

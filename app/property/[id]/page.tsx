@@ -68,9 +68,24 @@ export default function PropertyDetailPage() {
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Insert inquiry into Supabase
-    setSubmitted(true);
-    setContact({ name: "", contact: "", message: "" });
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+    const { error } = await supabase.from('inquiries').insert([
+      {
+        property_id: id,
+        user_name: contact.name,
+        user_contact: contact.contact,
+        message: contact.message,
+      },
+    ]);
+    if (!error) {
+      setSubmitted(true);
+      setContact({ name: "", contact: "", message: "" });
+    } else {
+      alert('Failed to send inquiry: ' + error.message);
+    }
   };
 
   if (!property) return <div className="p-8 text-center">Loading...</div>;

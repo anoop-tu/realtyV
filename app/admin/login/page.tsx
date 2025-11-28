@@ -28,7 +28,7 @@ export default function AdminLoginPage() {
       // Check session after login
       const session = await supabase.auth.getSession();
       console.log('Session after login:', session);
-      router.push('/admin/dashboard');
+      window.location.href = '/admin/dashboard';
     }
   };
 

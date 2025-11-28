@@ -26,18 +26,28 @@ const Filters: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <label className="block mb-1 font-medium">Property Type</label>
-        <Select onChange={handleTypeChange} value={searchParams.get('type') || ''}>
+    <div className="flex flex-col md:flex-row md:items-end gap-4 md:gap-6 w-full">
+      <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
+        <label className="font-medium md:mb-0 md:mr-2 whitespace-nowrap">Property Type</label>
+        <Select
+          onChange={handleTypeChange}
+          value={searchParams.get('type') || ''}
+          className="w-32 md:w-36"
+        >
           {propertyTypes.map((type) => (
             <option key={type.value} value={type.value}>{type.label}</option>
           ))}
         </Select>
       </div>
-      <div>
-        <label className="block mb-1 font-medium">Max Price</label>
-  <Input type="number" onChange={handlePriceChange} value={searchParams.get('price') || ''} placeholder="Any" />
+      <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
+        <label className="font-medium md:mb-0 md:mr-2 whitespace-nowrap">Max Price</label>
+        <Input
+          type="number"
+          onChange={handlePriceChange}
+          value={searchParams.get('price') || ''}
+          placeholder="Any"
+          className="w-28 md:w-32"
+        />
       </div>
     </div>
   );
