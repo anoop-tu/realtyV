@@ -4,7 +4,19 @@ A modern real estate MVP inspired by platforms like 99acres and Zillow. RealtyVi
 
 ---
 
-## 🏗️ Architecture Overview
+## � Recent Features & Improvements (2025)
+
+- **Per-user Favorites:** Favorites are now stored per user (using localStorage and Supabase Auth), ensuring each user's favorites are private and persistent.
+- **Share Button:** Each property listing card includes a share button that copies the direct property URL to the clipboard and displays a fluid popup for user feedback.
+- **Sticky Header:** The main navigation header is now sticky for improved usability.
+- **Grid/List/Map View Toggle:** Users can switch between grid, list, and map views on the search page for flexible browsing.
+- **Preview Images:** Listings and favorites now display preview images for a richer browsing experience.
+- **Enhanced Role-based Navigation:** Navigation and access are dynamically tailored to user roles, with improved login/logout redirects.
+- **Modern UI/UX Enhancements:** Fluid popups, improved feedback, and consistent, responsive design throughout the app.
+
+---
+
+## �🏗️ Architecture Overview
 
 - **Frontend:** Next.js 14+ (App Router), TypeScript, Tailwind CSS, Shadcn/UI, Lucide React
 - **Backend:** Supabase (PostgreSQL, Auth, Storage)
@@ -24,6 +36,7 @@ A modern real estate MVP inspired by platforms like 99acres and Zillow. RealtyVi
 
 ## 🎨 Design Considerations
 - **Modern UI:** Card-based layouts, glassmorphism, gradients, and responsive design
+ - **Modern UI/UX:** Fluid popups, sticky header, and responsive feedback for actions like sharing and favoriting
 - **Consistency:** Uniform look across admin and public pages
 - **Performance:** SSR/ISR with Next.js for fast loads and SEO
 - **Security:** Supabase RLS for data protection, role-based access
@@ -72,14 +85,22 @@ A modern real estate MVP inspired by platforms like 99acres and Zillow. RealtyVi
 - Split view: Filters (top bar), Listings (left), Map (right)
 - Advanced filtering (type, price), favorites, responsive design
 - Interactive map with property markers
+ - **Grid/List/Map toggle:** Easily switch between grid, list, and map views
+ - **Share button:** Copy property links directly from each listing card
+ - **Sticky header:** Navigation remains visible while scrolling
+ - **Preview images:** Listings show property images for quick browsing
 
 ### `/property/[id]`
 - Property details, gallery, map, features
 - Contact broker form (inquiry saved to backend)
 - Favorite toggle
+ - **Share button:** Copy the property URL to clipboard
+ - **Preview images:** Prominent display of property images
 
 ### `/favorites`
 - List of favorited properties (localStorage for public users)
+ - **Per-user favorites:** Favorites are now private to each user (requires login)
+ - **Preview images:** Favorites list shows property images
 
 ### `/admin/dashboard`
 - Admin-only: Add/edit properties, bulk CSV upload, listings table

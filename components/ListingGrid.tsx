@@ -4,7 +4,9 @@
 import type { Property } from '../types/Property';
 import React, { useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { Heart } from "lucide-react";
+import { Heart, Share2 } from "lucide-react";
+import { useState } from 'react';
+
 import PropertyPreview from './PropertyPreview';
 
 // Utility to get the correct favorites key
@@ -83,7 +85,8 @@ const ListingGrid: React.FC<ListingGridProps> = ({ properties = [], activeProper
     );
   }
 
-  // List view with preview image
+  // List view with preview image and share button
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   return (
     <div className="grid grid-cols-1 gap-4 p-4">
       {displayProperties.map((property) => {
@@ -94,6 +97,7 @@ const ListingGrid: React.FC<ListingGridProps> = ({ properties = [], activeProper
             previewImg = images[0];
           }
         }
+        const propertyUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/property/${property.id}`;
         return (
           <div key={property.id} className="relative group">
             <Link
@@ -125,11 +129,31 @@ const ListingGrid: React.FC<ListingGridProps> = ({ properties = [], activeProper
                     >
                       <Heart className={`w-5 h-5 transition ${favs.includes(property.id) ? "fill-red-500 text-red-500" : "text-gray-400"}`} />
                     </button>
+                    <button
+                      type="button"
+                      aria-label="Share property"
+                      className="ml-2"
+                      onClick={e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        navigator.clipboard.writeText(propertyUrl);
+                        setCopiedId(property.id);
+                        setTimeout(() => setCopiedId(null), 1500);
+                      }}
+                    >
+                      <Share2 className="w-5 h-5 text-blue-500 hover:text-blue-700 transition" />
+                    </button>
                   </h3>
                   <div className="text-gray-600 truncate">{property.address}</div>
                   <div className="text-blue-600 font-semibold">₹{property.price.toLocaleString('en-IN')}</div>
                   <div className="text-xs uppercase mt-2">{property.type}</div>
                 </div>
+                {/* Link copied popup */}
+                {copiedId === property.id && (
+                  <div className="absolute top-2 right-2 bg-blue-600 text-white px-3 py-1 rounded shadow-lg text-xs animate-fade-in-out z-20">
+                    Link copied to clipboard
+                  </div>
+                )}
               </div>
             </Link>
           </div>
