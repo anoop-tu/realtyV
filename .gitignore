@@ -1,4 +1,13 @@
-node_modules
 
-# Ignore environment files
+# Dependency directory
+node_modules/
+
+# Next.js build output
+.next/
+
+# Local environment variables
+.env.local
 .env*
+
+# Optional: lock file (uncomment if you do not want to track it)
+# package-lock.json
