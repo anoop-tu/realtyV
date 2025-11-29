@@ -11,4 +11,20 @@
 		background-size: 200% 200%;
 		animation: gradient 8s ease-in-out infinite;
 	}
+
+	@keyframes fadein {
+		0% { opacity: 0; transform: translateY(40px); }
+		100% { opacity: 1; transform: translateY(0); }
+	}
+	.animate-fadein {
+		animation: fadein 1.2s cubic-bezier(.4,0,.2,1) both;
+	}
+
+	@keyframes float {
+		0%, 100% { transform: translateY(0); }
+		50% { transform: translateY(-10px); }
+	}
+	.animate-float {
+		animation: float 2.5s ease-in-out infinite;
+	}
 }

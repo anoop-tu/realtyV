@@ -2,6 +2,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { createBrowserClient } from '@supabase/auth-helpers-react';
+import type { Profile } from '@/types/profiles';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -18,24 +19,34 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    console.log('Attempting login for:', email);
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
-    console.log('Login result:', { data, error });
     if (error) {
       setError(error.message);
     } else {
-      // Check session after login
-      const session = await supabase.auth.getSession();
-      console.log('Session after login:', session);
-      window.location.href = '/admin/dashboard';
+      // Fetch user profile to determine role
+      const user = data.user;
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        if (profile?.role === 'admin') {
+          window.location.href = '/admin/dashboard';
+        } else {
+          window.location.href = '/search';
+        }
+      } else {
+        setError('Login failed: user not found');
+      }
     }
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
       <form onSubmit={handleLogin} className="bg-white p-8 rounded shadow w-full max-w-md space-y-4">
-        <h1 className="text-2xl font-bold mb-4">Admin Login</h1>
+  <h1 className="text-2xl font-bold mb-4">Login</h1>
         <input
           type="email"
           placeholder="Email"

@@ -45,12 +45,28 @@ export default function PropertyDetailPage() {
     };
     fetchProperty();
     // Check favorite
-    const favs = JSON.parse(localStorage.getItem("favorites") || "[]");
+    function getFavoritesKey() {
+      const user = JSON.parse(localStorage.getItem('sb-user') || 'null');
+      if (user && user.id) {
+        return `favorites_${user.id}`;
+      }
+      return 'favorites';
+    }
+    const key = getFavoritesKey();
+    const favs = JSON.parse(localStorage.getItem(key) || "[]");
     setFavorite(favs.includes(id));
   }, [id]);
 
   const toggleFavorite = () => {
-    const favs = JSON.parse(localStorage.getItem("favorites") || "[]");
+    function getFavoritesKey() {
+      const user = JSON.parse(localStorage.getItem('sb-user') || 'null');
+      if (user && user.id) {
+        return `favorites_${user.id}`;
+      }
+      return 'favorites';
+    }
+    const key = getFavoritesKey();
+    const favs = JSON.parse(localStorage.getItem(key) || "[]");
     let updated;
     if (favs.includes(id)) {
       updated = favs.filter((fid: string) => fid !== id);
@@ -59,7 +75,7 @@ export default function PropertyDetailPage() {
       updated = [...favs, id];
       setFavorite(true);
     }
-    localStorage.setItem("favorites", JSON.stringify(updated));
+    localStorage.setItem(key, JSON.stringify(updated));
   };
 
   const handleContactChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -105,7 +121,7 @@ export default function PropertyDetailPage() {
             <Heart className={`w-7 h-7 transition ${favorite ? "fill-red-500 text-red-500" : "text-gray-400"}`} />
           </button>
         </h1>
-        <div className="text-xl text-blue-700 font-semibold">₹{property.price.toLocaleString()}</div>
+  <div className="text-xl text-blue-700 font-semibold">₹{property.price.toLocaleString('en-IN')}</div>
         <div className="text-gray-600 mb-2">{property.address}</div>
         <div className="flex gap-6 text-sm text-gray-700 mb-4">
           <span>Type: <b>{property.type}</b></span>

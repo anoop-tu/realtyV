@@ -1,6 +1,6 @@
 
-import React, { useRef, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import React, { useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -14,28 +14,28 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow.src,
 });
 import type { Property } from '../types/Property';
+import { useRouter } from 'next/navigation';
 
 interface MapComponentProps {
   properties: Property[];
-  onMarkerClick?: (id: string) => void;
 }
 
-const MapComponent: React.FC<MapComponentProps> = ({ properties, onMarkerClick }) => {
-  const mapRef = useRef<any>(null);
-
-  // Calculate bounds from property locations
+const FitBounds: React.FC<{ properties: Property[] }> = ({ properties }) => {
+  const map = useMap();
   useEffect(() => {
-    if (!mapRef.current || !properties.length) return;
-    const map = mapRef.current;
-    const bounds = properties.map((p) => [p.lat, p.lng]);
+    if (!properties.length) return;
+    const bounds: [number, number][] = properties.map((p) => [p.lat, p.lng] as [number, number]);
     if (bounds.length === 1) {
       map.setView(bounds[0], 14);
     } else if (bounds.length > 1) {
       map.fitBounds(bounds, { padding: [50, 50] });
     }
-  }, [properties]);
+  }, [properties, map]);
+  return null;
+};
 
-
+const MapComponent: React.FC<MapComponentProps> = ({ properties }) => {
+  const router = useRouter();
   // Default center if no properties
   const defaultCenter: [number, number] = properties.length
     ? [properties[0].lat, properties[0].lng]
@@ -46,28 +46,24 @@ const MapComponent: React.FC<MapComponentProps> = ({ properties, onMarkerClick }
       center={defaultCenter}
       zoom={12}
       style={{ height: '100%', width: '100%' }}
-      ref={mapRef}
-      whenReady={() => {
-        // Set mapRef only if not already set
-        if (!mapRef.current) {
-          // @ts-ignore: access Leaflet map instance
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          mapRef.current = (window as any).L?.map?.instances?.[0] || undefined;
-        }
-      }}
     >
+      <FitBounds properties={properties} />
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       {properties.map((property) => (
         <Marker
           key={property.id}
           position={[property.lat, property.lng]}
-          eventHandlers={{
-            click: () => onMarkerClick && onMarkerClick(property.id),
-          }}
         >
           <Popup>
-            <div>
-              <strong>{property.title}</strong>
+            <div
+              className="cursor-pointer min-w-[120px]"
+              onClick={() => router.push(`/property/${property.id}`)}
+              style={{ userSelect: 'none' }}
+            >
+              <div className="font-semibold text-blue-700">{property.title}</div>
+              <div className="text-sm text-gray-700">₹{property.price.toLocaleString('en-IN')}</div>
+              <div className="text-xs text-gray-500 mt-1">{property.type}</div>
+              <div className="text-xs text-blue-500 mt-2 underline">View Details</div>
             </div>
           </Popup>
         </Marker>
