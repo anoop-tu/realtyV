@@ -1,31 +1,29 @@
+
 # RealtyView
 
-A modern real estate MVP inspired by platforms like 99acres and Zillow. RealtyView is built for both public users and admins, featuring interactive maps, advanced filtering, favorites, broker contact, and a robust admin portal.
+RealtyView is a modern, full-stack real estate MVP inspired by platforms like 99acres and Zillow. It is designed for both public users and admins, featuring interactive maps, advanced filtering, favorites, broker contact, and a robust admin portal. The app is built with a focus on clean UI/UX, security, and scalability.
 
 ---
 
-## � Recent Features & Improvements (2025)
+## 🏗️ Architecture Overview
 
-- **Per-user Favorites:** Favorites are now stored per user (using localStorage and Supabase Auth), ensuring each user's favorites are private and persistent.
-- **Share Button:** Each property listing card includes a share button that copies the direct property URL to the clipboard and displays a fluid popup for user feedback.
-- **Sticky Header:** The main navigation header is now sticky for improved usability.
-- **Grid/List/Map View Toggle:** Users can switch between grid, list, and map views on the search page for flexible browsing.
-- **Preview Images:** Listings and favorites now display preview images for a richer browsing experience.
-- **Enhanced Role-based Navigation:** Navigation and access are dynamically tailored to user roles, with improved login/logout redirects.
-- **Modern UI/UX Enhancements:** Fluid popups, improved feedback, and consistent, responsive design throughout the app.
+**Frontend:**
+- Next.js 14+ (App Router)
+- TypeScript
+- Tailwind CSS
+- Shadcn/UI (component library)
+- Lucide React (icons)
+- Zustand (state management)
+- React Hook Form + Zod (forms/validation)
+- React-Leaflet (OpenStreetMap integration)
 
----
+**Backend:**
+- Supabase (PostgreSQL, Auth, Storage for images, RLS)
 
-## �🏗️ Architecture Overview
+**Integration:**
+- The frontend communicates directly with Supabase using the official JS client. All data (properties, profiles, media, inquiries) is fetched or mutated via Supabase APIs. Auth state is managed via Supabase Auth Helpers, and RLS policies enforce security on the backend.
 
-- **Frontend:** Next.js 14+ (App Router), TypeScript, Tailwind CSS, Shadcn/UI, Lucide React
-- **Backend:** Supabase (PostgreSQL, Auth, Storage)
-- **Maps:** React-Leaflet (OpenStreetMap)
-- **State Management:** Zustand
-- **Forms:** React Hook Form + Zod
-- **Design:** Clean, whitespace-heavy, mobile-responsive, Royal Blue (#2563EB) as primary color
-
-### High-Level Diagram
+**High-Level Diagram:**
 ```
 [User] ⇄ [Next.js Frontend] ⇄ [Supabase Backend (DB, Auth, Storage)]
                                  ⇅
@@ -34,96 +32,89 @@ A modern real estate MVP inspired by platforms like 99acres and Zillow. RealtyVi
 
 ---
 
+## 🛠️ Tools, Languages, and Technologies
+
+- **Next.js 14+**: Modern React framework with App Router, SSR/ISR, and API routes.
+- **TypeScript**: Type safety across the stack.
+- **Tailwind CSS**: Utility-first styling for rapid, consistent UI.
+- **Shadcn/UI**: Accessible, modern UI components.
+- **Lucide React**: Icon set for a clean, modern look.
+- **Supabase**: Managed PostgreSQL, Auth, Storage, and RLS for security.
+- **React-Leaflet**: Interactive maps using OpenStreetMap.
+- **Zustand**: Lightweight state management.
+- **React Hook Form + Zod**: Robust form validation.
+- **PapaParse**: CSV parsing for admin bulk upload.
+
+---
+
 ## 🎨 Design Considerations
-- **Modern UI:** Card-based layouts, glassmorphism, gradients, and responsive design
- - **Modern UI/UX:** Fluid popups, sticky header, and responsive feedback for actions like sharing and favoriting
-- **Consistency:** Uniform look across admin and public pages
-- **Performance:** SSR/ISR with Next.js for fast loads and SEO
-- **Security:** Supabase RLS for data protection, role-based access
-- **Scalability:** Modular code, scalable DB schema
+
+- **Clean, whitespace-heavy, mobile-responsive UI**
+- **Royal Blue (#2563EB)** as the primary color
+- **Card-based layouts, gradients, glassmorphism**
+- **Consistent look** across admin and public pages
+- **Performance**: SSR/ISR for fast loads and SEO
+- **Accessibility**: Shadcn/UI and semantic HTML
+- **Scalability**: Modular code, scalable DB schema
 
 ---
 
-## 🛠️ Tools & Libraries
-- **Next.js 14+**: App Router, SSR/ISR, API routes
-- **TypeScript**: Type safety throughout
-- **Tailwind CSS**: Utility-first styling
-- **Shadcn/UI**: Accessible, modern UI components
-- **Lucide React**: Icon set
-- **Supabase**: Managed PostgreSQL, Auth, Storage, RLS
-- **React-Leaflet**: Interactive maps
-- **Zustand**: Lightweight state management
-- **React Hook Form + Zod**: Form validation
+## 🔒 Authentication & Security
+
+- **Supabase Auth**: Email/password authentication, session management via Supabase Auth Helpers.
+- **Role-Based Access (RBAC)**: User roles (admin, user, broker) are enforced via the `profiles` table and RLS policies.
+- **Row Level Security (RLS)**: All sensitive DB operations (CRUD on properties, etc.) are protected by RLS and role checks. Only admins can insert, update, or delete properties.
+- **No secrets or tokens** are exposed in the frontend. Only public anon keys are used client-side.
+- **Favorites**: Per-user favorites are stored in localStorage, keyed by user ID. No sensitive data is stored in localStorage.
+- **No XSS/CSRF/Open Redirects**: No use of `dangerouslySetInnerHTML`, `eval`, or unsafe DOM APIs. Navigation is handled safely via Next.js router.
 
 ---
-
-## 🖥️ Frontend Details
-- **App Router**: All pages use Next.js App Router for routing and layouts
-- **Global Styles**: Tailwind CSS with custom animation utilities
-- **Component Library**: Shadcn/UI for consistent, accessible UI
-- **Map Integration**: React-Leaflet for property locations and search
-- **State**: Zustand for favorites and UI state
-
----
-
-## 🗄️ Backend Details (Supabase)
-- **Database**: PostgreSQL with tables for profiles, properties, media, inquiries
-- **Auth**: Supabase Auth (email/password, RLS)
-- **Storage**: For property images
-- **RLS**: Row Level Security for data protection
-- **API**: All data fetching via Supabase client
-
----
-
-## 📄 Page & Feature Descriptions
-
-### `/` (Home)
-- Futuristic hero section, call-to-action buttons for search and admin
-- Animated gradient background, glassmorphic card
-
-### `/search`
-- Split view: Filters (top bar), Listings (left), Map (right)
-- Advanced filtering (type, price), favorites, responsive design
-- Interactive map with property markers
- - **Grid/List/Map toggle:** Easily switch between grid, list, and map views
- - **Share button:** Copy property links directly from each listing card
- - **Sticky header:** Navigation remains visible while scrolling
- - **Preview images:** Listings show property images for quick browsing
-
-### `/property/[id]`
-- Property details, gallery, map, features
-- Contact broker form (inquiry saved to backend)
-- Favorite toggle
- - **Share button:** Copy the property URL to clipboard
- - **Preview images:** Prominent display of property images
-
-### `/favorites`
-- List of favorited properties (localStorage for public users)
- - **Per-user favorites:** Favorites are now private to each user (requires login)
- - **Preview images:** Favorites list shows property images
-
-### `/admin/dashboard`
-- Admin-only: Add/edit properties, bulk CSV upload, listings table
-- Card-based layout, analytics-ready
-
----
-
-## 💡 Why Supabase?
-- **Managed PostgreSQL**: No server maintenance
-- **Auth & RLS**: Secure, role-based access
-- **Storage**: Easy image/file uploads
-- **Realtime**: Live updates possible
-- **Open Source**: No vendor lock-in
 
 ## 💡 Why Next.js?
-- **App Router**: Modern, flexible routing
-- **SSR/ISR**: SEO and performance
-- **API Routes**: Serverless functions
-- **Developer Experience**: Fast refresh, TypeScript support
+
+- **App Router**: Modern, flexible routing and layouts.
+- **SSR/ISR**: SEO and performance out of the box.
+- **API Routes**: Serverless functions for backend logic if needed.
+- **Developer Experience**: Fast refresh, TypeScript support, and a rich ecosystem.
 
 ---
 
-## 🚀 Local Setup Instructions
+## � Why Supabase?
+
+- **Managed PostgreSQL**: No server maintenance required.
+- **Auth & RLS**: Secure, role-based access and row-level security.
+- **Storage**: Easy image/file uploads for property media.
+- **Realtime**: Live updates possible.
+- **Open Source**: No vendor lock-in.
+
+---
+
+## 🌐 Features
+
+- **Interactive Map**: Split-screen view with map and listings, powered by React-Leaflet and OpenStreetMap.
+- **Admin Portal**: Role-based access for admins to CRUD listings, bulk upload via CSV, and view analytics.
+- **Public View**: Advanced filtering, favorites (per-user, localStorage), and broker contact forms.
+- **SEO**: Dynamic metadata generation for every property page.
+- **Favorites**: Per-user, persistent, and private.
+- **Share Button**: Copy property URLs directly from listing cards.
+- **Sticky Header**: Main navigation remains visible while scrolling.
+- **Grid/List/Map View Toggle**: Flexible browsing on the search page.
+- **Preview Images**: Listings and favorites display property images; fallback to emoji if missing.
+- **Modern UI/UX**: Fluid popups, feedback, and responsive design.
+- **Analytics**: Admin dashboard with property and user analytics.
+
+---
+
+## �️ Backend Integration
+
+- **Supabase as the backend**: All data (properties, profiles, media, inquiries) is managed in Supabase tables.
+- **API Integration**: The frontend uses the Supabase JS client to fetch and mutate data. Auth state is synced via Supabase Auth Helpers.
+- **RLS Policies**: Enforced on the backend to ensure only authorized users can perform sensitive actions.
+- **Media Storage**: Property images are stored in Supabase Storage and linked via the `media` table.
+
+---
+
+## 🚀 Getting Started (Fresh Setup)
 
 1. **Clone the repository**
    ```sh
@@ -141,16 +132,21 @@ A modern real estate MVP inspired by platforms like 99acres and Zillow. RealtyVi
      NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
      NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
      ```
-4. **Run the development server**
+4. **Set up your Supabase project**
+   - Create the tables as described in `supabase_schema.sql` (profiles, properties, media, inquiries)
+   - Enable RLS and set up policies as shown in the schema file
+   - Configure Storage bucket for property images
+5. **Run the development server**
    ```sh
    npm run dev
    ```
-5. **Open the app**
+6. **Open the app**
    - Visit [http://localhost:3000](http://localhost:3000)
 
 ---
 
 ## 📦 Project Structure
+
 - `app/` - Next.js App Router pages and layouts
 - `components/` - UI and logic components
 - `lib/` - Utility functions and Supabase client
@@ -160,4 +156,5 @@ A modern real estate MVP inspired by platforms like 99acres and Zillow. RealtyVi
 ---
 
 ## 📣 Contact
+
 For questions or contributions, open an issue or pull request on GitHub.
