@@ -18,34 +18,43 @@ interface Property {
 interface ListingsTableProps {
   onEdit?: (property: Property) => void;
   refreshKey?: number;
+  listings?: Property[];
 }
 
-const ListingsTable: React.FC<ListingsTableProps> = ({ onEdit, refreshKey }) => {
-  const [listings, setListings] = useState<Property[]>([]);
+
+const ListingsTable: React.FC<ListingsTableProps> = ({ onEdit, refreshKey, listings }) => {
+  const [internalListings, setInternalListings] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  const fetchListings = async () => {
-    setLoading(true);
-    // Use authenticated client for RLS
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-    try {
-      const { data, error } = await supabase
-        .from('properties')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setListings(data || []);
-    } catch (error) {
-      console.error('Error fetching listings:', error);
-    } finally {
+  // If listings are provided as prop, use them, else fetch
+  React.useEffect(() => {
+    if (listings) {
+      setInternalListings(listings);
       setLoading(false);
+    } else {
+      const fetchListings = async () => {
+        setLoading(true);
+        const supabase = createBrowserClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+        try {
+          const { data, error } = await supabase
+            .from('properties')
+            .select('*')
+            .order('created_at', { ascending: false });
+          if (error) throw error;
+          setInternalListings(data || []);
+        } catch (error) {
+          console.error('Error fetching listings:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchListings();
     }
-  };
+  }, [listings, refreshKey]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this property?')) return;
@@ -65,7 +74,7 @@ const ListingsTable: React.FC<ListingsTableProps> = ({ onEdit, refreshKey }) => 
 
       if (error) throw error;
 
-      setListings(listings.filter(l => l.id !== id));
+  setInternalListings(prev => prev.filter(l => l.id !== id));
     } catch (error) {
       console.error('Error deleting property:', error);
       alert('Failed to delete property');
@@ -74,16 +83,14 @@ const ListingsTable: React.FC<ListingsTableProps> = ({ onEdit, refreshKey }) => 
     }
   };
 
-  useEffect(() => {
-    fetchListings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshKey]);
+  // No-op: fetching is handled in useEffect above based on listings/refreshKey
+
 
   if (loading) {
     return <div className="text-center py-8">Loading properties...</div>;
   }
 
-  if (listings.length === 0) {
+  if (internalListings.length === 0) {
     return <div className="text-center py-8 text-gray-500">No properties found. Add your first property above!</div>;
   }
 
@@ -101,7 +108,7 @@ const ListingsTable: React.FC<ListingsTableProps> = ({ onEdit, refreshKey }) => 
           </tr>
         </thead>
         <tbody>
-          {listings.map((listing) => (
+          {internalListings.map((listing) => (
             <tr key={listing.id} className="bg-white rounded-lg shadow-sm">
               <td className="px-4 py-2 align-middle">
                 <Link href={`/property/${listing.id}`} className="text-blue-700 hover:underline">

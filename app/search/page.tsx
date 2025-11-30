@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Filters from '../../components/Filters';
 import ListingGrid from '../../components/ListingGrid';
+import { Select } from '@/components/ui/select';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 import type { Property } from '../../types/Property';
@@ -75,6 +76,7 @@ export default function SearchPage() {
   }, []);
   const [viewType, setViewType] = useState<'list' | 'grid' | 'map'>('list');
   const [activePropertyId, setActivePropertyId] = useState<string | undefined>(undefined);
+  const [sortOrder, setSortOrder] = useState<'price-asc' | 'price-desc'>('price-asc');
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -84,11 +86,17 @@ export default function SearchPage() {
   const maxPriceParam = searchParams.get('max_price');
   const minPrice = minPriceParam ? Number(minPriceParam) : null;
   const maxPrice = maxPriceParam ? Number(maxPriceParam) : null;
-  const filteredProperties = properties.filter((p) => {
+  let filteredProperties = properties.filter((p) => {
     const typeMatch = !typeParam || p.type === typeParam;
     const minMatch = minPrice === null || p.price >= minPrice;
     const maxMatch = maxPrice === null || p.price <= maxPrice;
     return typeMatch && minMatch && maxMatch;
+  });
+  // Sort by price
+  filteredProperties = [...filteredProperties].sort((a, b) => {
+    if (sortOrder === 'price-asc') return a.price - b.price;
+    if (sortOrder === 'price-desc') return b.price - a.price;
+    return 0;
   });
 
   // Responsive: show tabs on mobile, split view on desktop
@@ -137,10 +145,26 @@ export default function SearchPage() {
         <div className="w-full min-h-[400px]">
           {viewType === 'list' || viewType === 'grid' ? (
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-blue-100 h-full flex flex-col min-h-[400px]">
-              <h2 className="text-lg font-semibold mb-4 text-blue-700 flex items-center gap-2">
-                <span className="inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
-                Listings
-              </h2>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
+                <h2 className="text-lg font-semibold text-blue-700 flex items-center gap-2">
+                  <span className="inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
+                  Listings
+                </h2>
+                <div className="flex items-center gap-2">
+                  <label htmlFor="sort" className="text-sm text-gray-600 font-medium">Sort by:</label>
+                  <div className="w-44">
+                    <Select
+                      id="sort"
+                      value={sortOrder}
+                      onChange={e => setSortOrder(e.target.value as 'price-asc' | 'price-desc')}
+                      className="bg-white border-blue-200 focus-visible:ring-blue-400 shadow-sm"
+                    >
+                      <option value="price-asc">Price: Low to High</option>
+                      <option value="price-desc">Price: High to Low</option>
+                    </Select>
+                  </div>
+                </div>
+              </div>
               {loading ? (
                 <div className="p-4 text-center text-gray-500">Loading properties...</div>
               ) : error ? (
