@@ -19,6 +19,7 @@ const propertySchema = z.object({
   address: z.string().min(1, 'Address is required'),
   features: z.any().optional(),
   images: z.any().optional(),
+  featured: z.boolean().optional(),
 });
 
 type PropertyFormValues = z.infer<typeof propertySchema>;
@@ -43,16 +44,18 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onDone }) => {
       price: property?.price ?? 0,
       lat: property?.lat ?? 0,
       lng: property?.lng ?? 0,
-    } : undefined,
+      featured: property?.featured ?? false,
+    } : { featured: false },
   });
 
   useEffect(() => {
     if (property) {
       reset({
-        ...property,
-        price: property?.price ?? 0,
-        lat: property?.lat ?? 0,
-        lng: property?.lng ?? 0,
+  ...property,
+  price: property?.price ?? 0,
+  lat: property?.lat ?? 0,
+  lng: property?.lng ?? 0,
+  featured: property?.featured ?? false,
       });
       // Fetch images for this property
       const fetchImages = async () => {
@@ -145,6 +148,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onDone }) => {
             address: data.address,
             features: data.features || {},
             status: 'active',
+            featured: data.featured ?? false,
           })
           .eq('id', property.id)
           .select()
@@ -165,6 +169,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onDone }) => {
             address: data.address,
             features: data.features || {},
             status: 'active',
+            featured: data.featured ?? false,
           })
           .select()
           .single();
@@ -271,6 +276,10 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onDone }) => {
         )}
       </div>
       
+      <div className="flex items-center gap-2">
+        <input type="checkbox" id="featured" {...register('featured')} className="w-4 h-4" />
+        <label htmlFor="featured" className="text-sm font-medium">Featured Property</label>
+      </div>
       <Button type="submit" className="w-full" disabled={uploading}>
         {uploading ? 'Uploading...' : property && property.id ? 'Update Property' : 'Add Property'}
       </Button>
