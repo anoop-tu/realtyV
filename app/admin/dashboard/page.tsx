@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState } from 'react';
+
 import PropertyForm from '@/components/PropertyForm';
 import CSVUpload from '@/components/CSVUpload';
 import ListingsTable from '@/components/ListingsTable';
+import AdminAnalytics from '@/components/AdminAnalytics';
 
 
 export default function AdminDashboardPage() {
@@ -16,6 +18,9 @@ export default function AdminDashboardPage() {
         <h1 className="text-4xl font-extrabold text-blue-700 mb-10 tracking-tight flex items-center gap-3">
           <span className="inline-block bg-blue-100 text-blue-700 px-4 py-2 rounded-lg shadow-sm">Admin Dashboard</span>
         </h1>
+        {/* Analytics Section */}
+        <AdminAnalytics />
+        {/* Property Form and CSV Upload */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
           <div className="bg-white rounded-2xl shadow-lg p-8 border border-blue-100">
             <h2 className="text-xl font-semibold mb-4 text-blue-700 flex items-center gap-2">
@@ -38,6 +43,7 @@ export default function AdminDashboardPage() {
             <CSVUpload />
           </div>
         </div>
+        {/* Listings Table */}
         <div className="relative">
           <div className="absolute left-0 right-0 h-1 bg-gradient-to-r from-blue-200 via-blue-400 to-blue-200 opacity-30 rounded-full top-0" />
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-blue-100 mt-12">

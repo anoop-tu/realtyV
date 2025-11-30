@@ -65,6 +65,8 @@ const ListingGrid: React.FC<ListingGridProps> = ({ properties = [], activeProper
     ? (properties || []).filter((p) => favs.includes(p.id))
     : properties;
 
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
   if (!displayProperties.length) {
     return <div className="p-4 text-gray-500">No properties found.</div>;
   }
@@ -72,21 +74,44 @@ const ListingGrid: React.FC<ListingGridProps> = ({ properties = [], activeProper
   if (grid) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-2">
-        {displayProperties.map((property) => (
-          <div key={property.id} ref={el => { cardRefs.current[property.id] = el; }}>
-            <PropertyPreview
-              property={property}
-              isFavorite={favs.includes(property.id)}
-              onToggleFavorite={toggleFavorite}
-            />
-          </div>
-        ))}
+        {displayProperties.map((property) => {
+          const propertyUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/property/${property.id}`;
+          return (
+            <div key={property.id} ref={el => { cardRefs.current[property.id] = el; }} className="relative">
+              <PropertyPreview
+                property={property}
+                isFavorite={favs.includes(property.id)}
+                onToggleFavorite={toggleFavorite}
+              />
+              {/* Share button overlay */}
+              <button
+                type="button"
+                aria-label="Share property"
+                className="absolute top-2 right-2 z-20 bg-white/80 rounded-full p-1 shadow hover:bg-blue-100 transition"
+                onClick={e => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  navigator.clipboard.writeText(propertyUrl);
+                  setCopiedId(property.id);
+                  setTimeout(() => setCopiedId(null), 1500);
+                }}
+              >
+                <Share2 className="w-5 h-5 text-blue-500 hover:text-blue-700 transition" />
+              </button>
+              {/* Link copied popup */}
+              {copiedId === property.id && (
+                <div className="absolute top-10 right-2 bg-blue-600 text-white px-3 py-1 rounded shadow-lg text-xs animate-fade-in-out z-30">
+                  Link copied to clipboard
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     );
   }
 
   // List view with preview image and share button
-  const [copiedId, setCopiedId] = useState<string | null>(null);
   return (
     <div className="grid grid-cols-1 gap-4 p-4">
       {displayProperties.map((property) => {

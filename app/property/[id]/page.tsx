@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { Heart } from "lucide-react";
+import { Heart, Share2 } from "lucide-react";
 
 
 export default function PropertyDetailPage() {
@@ -15,6 +15,7 @@ export default function PropertyDetailPage() {
   const [favorite, setFavorite] = useState(false);
   const [contact, setContact] = useState({ name: "", contact: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -106,6 +107,7 @@ export default function PropertyDetailPage() {
 
   if (!property) return <div className="p-8 text-center">Loading...</div>;
 
+  const propertyUrl = typeof window !== 'undefined' ? `${window.location.origin}/property/${id}` : '';
   return (
     <div className="max-w-6xl mx-auto py-10 px-4 grid grid-cols-1 md:grid-cols-3 gap-10">
       {/* Gallery */}
@@ -120,6 +122,20 @@ export default function PropertyDetailPage() {
           <button onClick={toggleFavorite} aria-label="Save to Favorites">
             <Heart className={`w-7 h-7 transition ${favorite ? "fill-red-500 text-red-500" : "text-gray-400"}`} />
           </button>
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(propertyUrl);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1500);
+            }}
+            aria-label="Share property"
+            className="ml-2"
+          >
+            <Share2 className="w-6 h-6 text-blue-500 hover:text-blue-700 transition" />
+          </button>
+          {copied && (
+            <span className="ml-2 bg-blue-600 text-white px-2 py-1 rounded text-xs animate-fade-in-out">Link copied!</span>
+          )}
         </h1>
   <div className="text-xl text-blue-700 font-semibold">₹{property.price.toLocaleString('en-IN')}</div>
         <div className="text-gray-600 mb-2">{property.address}</div>
