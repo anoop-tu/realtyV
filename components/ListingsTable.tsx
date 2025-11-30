@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
-import { supabase } from '@/lib/supabaseClient';
+import { createBrowserClient } from '@supabase/auth-helpers-react';
 import { Trash2, Edit } from 'lucide-react';
 
 interface Property {
@@ -27,6 +27,11 @@ const ListingsTable: React.FC<ListingsTableProps> = ({ onEdit, refreshKey }) => 
 
   const fetchListings = async () => {
     setLoading(true);
+    // Use authenticated client for RLS
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
     try {
       const { data, error } = await supabase
         .from('properties')
@@ -44,16 +49,22 @@ const ListingsTable: React.FC<ListingsTableProps> = ({ onEdit, refreshKey }) => 
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this property?')) return;
-    
+
     setDeleting(id);
+    // Use authenticated client for RLS
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
     try {
+      // Optionally, check user is admin here if needed
       const { error } = await supabase
         .from('properties')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
-      
+
       setListings(listings.filter(l => l.id !== id));
     } catch (error) {
       console.error('Error deleting property:', error);

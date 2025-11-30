@@ -113,9 +113,15 @@ export default function PropertyDetailPage() {
       {/* Gallery */}
       <div className="md:col-span-2 space-y-6">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 rounded-lg overflow-hidden">
-          {property.images.map((img: string, i: number) => (
-            <img key={i} src={img} alt={property.title} className="object-cover w-full h-40 md:h-56 rounded-lg" />
-          ))}
+          {property.images && property.images.length > 0 ? (
+            property.images.map((img: string, i: number) => (
+              <img key={i} src={img} alt={property.title} className="object-cover w-full h-40 md:h-56 rounded-lg" />
+            ))
+          ) : (
+            <div className="flex items-center justify-center w-full h-40 md:h-56 bg-gray-100 rounded-lg text-6xl select-none" style={{ gridColumn: '1 / -1' }}>
+              🏠
+            </div>
+          )}
         </div>
         <h1 className="text-3xl font-bold flex items-center gap-4">
           {property.title}

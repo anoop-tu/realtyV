@@ -115,7 +115,7 @@ const ListingGrid: React.FC<ListingGridProps> = ({ properties = [], activeProper
   return (
     <div className="grid grid-cols-1 gap-4 p-4">
       {displayProperties.map((property) => {
-        let previewImg = '/placeholder.jpg';
+        let previewImg = null;
         if (typeof property === 'object' && property !== null && 'images' in property) {
           const images = (property as any).images;
           if (Array.isArray(images) && images.length > 0 && typeof images[0] === 'string') {
@@ -133,12 +133,18 @@ const ListingGrid: React.FC<ListingGridProps> = ({ properties = [], activeProper
                 ref={el => { cardRefs.current[property.id] = el; }}
                 className={`card bg-base-100 shadow p-4 transition hover:bg-blue-50 cursor-pointer flex gap-4 items-center ${activePropertyId === property.id ? 'ring-2 ring-blue-600' : ''}`}
               >
-                <img
-                  src={previewImg}
-                  alt={property.title}
-                  className="w-24 h-20 object-cover rounded-lg bg-gray-100 flex-shrink-0"
-                  style={{ maxWidth: 96 }}
-                />
+                {previewImg ? (
+                  <img
+                    src={previewImg}
+                    alt={property.title}
+                    className="w-24 h-20 object-cover rounded-lg bg-gray-100 flex-shrink-0"
+                    style={{ maxWidth: 96 }}
+                  />
+                ) : (
+                  <div className="w-24 h-20 flex items-center justify-center rounded-lg bg-gray-100 text-3xl flex-shrink-0 select-none" style={{ maxWidth: 96 }}>
+                    🏠
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-lg flex items-center gap-2 truncate">
                     {property.title}

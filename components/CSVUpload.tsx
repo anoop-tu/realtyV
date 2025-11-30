@@ -3,7 +3,7 @@ import React, { useRef, useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Papa from 'papaparse';
-import { supabase } from '@/lib/supabaseClient';
+import { createBrowserClient } from '@supabase/auth-helpers-react';
 import { useRouter } from 'next/navigation';
 
 interface CSVProperty {
@@ -19,6 +19,7 @@ interface CSVProperty {
 }
 
 const CSVUpload: React.FC = () => {
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -27,10 +28,25 @@ const CSVUpload: React.FC = () => {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     setUploading(true);
     setMessage(null);
-    
+
+    // Create a per-session Supabase client
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+
+    // Get the current user
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    const user = userData?.user;
+    if (!user || userError) {
+      setMessage({ type: 'error', text: 'You must be logged in to upload properties.' });
+      setUploading(false);
+      return;
+    }
+
     Papa.parse(file, {
       header: true,
       complete: async (results) => {
@@ -47,6 +63,7 @@ const CSVUpload: React.FC = () => {
               address: row.address,
               features: row.features ? JSON.parse(row.features) : {},
               status: row.status || 'active',
+              broker_id: user.id, // Attach broker_id for RLS
             }));
 
           if (properties.length === 0) {
@@ -55,7 +72,7 @@ const CSVUpload: React.FC = () => {
             return;
           }
 
-          // Batch insert into Supabase
+          // Batch insert into Supabase with user_id
           const { data, error } = await supabase
             .from('properties')
             .insert(properties)
@@ -63,18 +80,23 @@ const CSVUpload: React.FC = () => {
 
           if (error) throw error;
 
-          setMessage({ 
-            type: 'success', 
-            text: `Successfully uploaded ${data?.length || 0} properties!` 
+          setMessage({
+            type: 'success',
+            text: `Successfully uploaded ${data?.length || 0} properties!`
           });
-          
-          router.refresh();
-          
+
+          // Force reload to update listings
+          if (typeof window !== 'undefined') {
+            window.location.reload();
+          } else {
+            router.refresh();
+          }
+
         } catch (error: any) {
           console.error('CSV upload error:', error);
-          setMessage({ 
-            type: 'error', 
-            text: error.message || 'Error processing CSV file' 
+          setMessage({
+            type: 'error',
+            text: error.message || 'Error processing CSV file'
           });
         } finally {
           setUploading(false);
