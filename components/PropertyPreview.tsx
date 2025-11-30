@@ -1,3 +1,5 @@
+// Property Preview Card Component for RealtyView
+// Displays a compact property card with image, title, price, and favorite toggle
 
 import type { Property } from '../types/Property';
 import React from 'react';

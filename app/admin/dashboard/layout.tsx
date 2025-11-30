@@ -1,3 +1,5 @@
+// Layout for Admin Dashboard in RealtyView
+// Handles server-side authentication and RBAC for admin-only access
 import { createServerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';

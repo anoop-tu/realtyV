@@ -1,3 +1,5 @@
+// Listing Grid Component for RealtyView
+// Renders property cards in grid or list view, handles favorites and active property highlighting
 
 
 

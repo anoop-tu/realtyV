@@ -1,3 +1,5 @@
+// Main Header Component for RealtyView
+// Renders the top navigation bar, user profile, and role-based links
 "use client";
 
 import React, { useEffect, useState } from "react";

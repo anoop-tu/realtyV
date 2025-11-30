@@ -1,3 +1,5 @@
+// Favorites Page for RealtyView
+// Displays user's favorite properties with images, using localStorage and Supabase
 "use client";
 
 

@@ -1,3 +1,5 @@
+// Admin Login Page for RealtyView
+// Handles admin authentication and redirects based on user role
 "use client";
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';

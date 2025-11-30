@@ -1,3 +1,5 @@
+// Root layout for RealtyView app
+// Sets up global metadata, header, and main container for all pages
 export const metadata = {
   title: 'RealtyView | Find Your Next Home in India',
   description: 'Search, compare, and discover the best properties in top Indian cities. Explore listings, view on map, and connect with trusted brokers on RealtyView.',

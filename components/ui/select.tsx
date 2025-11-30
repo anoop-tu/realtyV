@@ -1,3 +1,5 @@
+// Select UI component for RealtyView
+// Implements a styled, accessible dropdown/select using Tailwind and Shadcn/UI conventions
 import * as React from "react"
 import { cn } from "@/lib/utils"
 

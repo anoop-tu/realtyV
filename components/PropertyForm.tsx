@@ -1,3 +1,5 @@
+// Property Form Component for RealtyView
+// Handles add/edit property form, validation, image upload, and submission logic
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
@@ -48,16 +50,17 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onDone }) => {
     } : { featured: false },
   });
 
+  // When property changes, reset form and fetch images for editing
   useEffect(() => {
     if (property) {
       reset({
-  ...property,
-  price: property?.price ?? 0,
-  lat: property?.lat ?? 0,
-  lng: property?.lng ?? 0,
-  featured: property?.featured ?? false,
+        ...property,
+        price: property?.price ?? 0,
+        lat: property?.lat ?? 0,
+        lng: property?.lng ?? 0,
+        featured: property?.featured ?? false,
       });
-      // Fetch images for this property
+      // Fetch images for this property from Supabase
       const fetchImages = async () => {
         const supabase = createBrowserClient(
           process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -78,6 +81,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onDone }) => {
     }
   }, [property, reset]);
   // Remove image handler
+  // Remove an image from Supabase storage and media table
   const handleRemoveImage = async (imageId: string, imageUrl: string) => {
     if (!property?.id) return;
     if (!confirm('Remove this image?')) return;
@@ -86,7 +90,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onDone }) => {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
-    // Remove from storage
+    // Remove from storage bucket
     const path = imageUrl.split('/property-images/')[1];
     if (path) {
       await supabase.storage.from('property-images').remove([`properties/${path}`]);
@@ -97,6 +101,12 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onDone }) => {
     setRemovingImageId(null);
   };
 
+  /**
+   * Handles form submission for adding or updating a property.
+   * - Uploads images to Supabase Storage if provided
+   * - Inserts or updates property in Supabase
+   * - Inserts media records for uploaded images
+   */
   const onSubmit = async (data: PropertyFormValues) => {
     setUploading(true);
     setMessage(null);
@@ -116,6 +126,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onDone }) => {
           const fileName = `${Date.now()}-${i}.${fileExt}`;
           const filePath = `properties/${fileName}`;
 
+          // Upload each image to Supabase Storage
           const { error: uploadError } = await supabase.storage
             .from('property-images')
             .upload(filePath, file);
@@ -125,6 +136,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onDone }) => {
             continue;
           }
 
+          // Get public URL for uploaded image
           const { data: publicUrlData } = supabase.storage
             .from('property-images')
             .getPublicUrl(filePath);
@@ -135,7 +147,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onDone }) => {
 
       let propertyData;
       if (property && property.id) {
-        // Update existing property
+        // Update existing property in Supabase
         const { data: updated, error: updateError } = await supabase
           .from('properties')
           .update({
@@ -156,7 +168,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onDone }) => {
         if (updateError) throw updateError;
         propertyData = updated;
       } else {
-        // Insert new property
+        // Insert new property in Supabase
         const { data: inserted, error: insertError } = await supabase
           .from('properties')
           .insert({
@@ -185,6 +197,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onDone }) => {
           type: 'image' as const,
         }));
 
+        // Insert image URLs into media table
         const { error: mediaError } = await supabase
           .from('media')
           .insert(mediaRecords);

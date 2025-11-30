@@ -1,3 +1,5 @@
+// Input UI component for RealtyView
+// Implements a styled, accessible input field using Tailwind and Shadcn/UI conventions
 import * as React from "react"
 import { cn } from "@/lib/utils"
 

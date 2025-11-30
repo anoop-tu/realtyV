@@ -1,3 +1,5 @@
+// CSV Upload Component for RealtyView
+// Handles bulk property upload via CSV parsing and Supabase integration
 "use client";
 import React, { useRef, useState } from 'react';
 import { Input } from "@/components/ui/input";

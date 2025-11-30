@@ -1,3 +1,5 @@
+// Property Detail Page (server) for RealtyView
+// Fetches property data for SEO metadata and renders the client detail component
 import { Metadata } from 'next';
 import { supabase } from '@/lib/supabaseClient';
 import PropertyDetailClient from './PropertyDetailClient';

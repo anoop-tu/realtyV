@@ -22,15 +22,16 @@ const Filters: React.FC<FiltersProps> = ({ properties = [] }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Dynamically determine max price from properties
+  // Dynamically determine max price from properties for slider range
   const dynamicMax = properties.length > 0 ? Math.max(...properties.map((p: Property) => p.price)) : DEFAULT_MAX;
 
-  // Parse min/max from URL or use defaults
+  // Parse min/max from URL or use defaults for controlled slider state
   const minParam = Number(searchParams.get('min_price'));
   const maxParam = Number(searchParams.get('max_price'));
   const [minPrice, setMinPrice] = useState(Number.isFinite(minParam) && minParam >= 0 ? minParam : DEFAULT_MIN);
   const [maxPrice, setMaxPrice] = useState(Number.isFinite(maxParam) && maxParam > 0 ? maxParam : dynamicMax);
 
+  // Update slider state if URL params or dynamic max change
   useEffect(() => {
     // If max price in URL is out of new range, reset to dynamicMax
     setMinPrice(Number.isFinite(minParam) && minParam >= 0 ? Math.min(minParam, dynamicMax) : DEFAULT_MIN);
@@ -38,12 +39,17 @@ const Filters: React.FC<FiltersProps> = ({ properties = [] }) => {
     // eslint-disable-next-line
   }, [searchParams.get('min_price'), searchParams.get('max_price'), dynamicMax]);
 
+  // Handle property type dropdown change
   const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('type', e.target.value);
     router.push(`/search?${params.toString()}`);
   };
 
+  /**
+   * Handle slider change for min or max price.
+   * Keeps min <= max and updates URL params for filtering.
+   */
   const handleSliderChange = (which: 'min' | 'max', value: number) => {
     let newMin = minPrice;
     let newMax = maxPrice;

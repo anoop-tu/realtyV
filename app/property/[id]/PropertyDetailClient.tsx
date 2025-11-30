@@ -1,3 +1,5 @@
+// Property Detail Client Component for RealtyView
+// Handles property data fetching, favorite logic, contact form, and map display
 "use client";
 import React, { useState, useEffect } from "react";
 import { createBrowserClient } from '@supabase/auth-helpers-react';

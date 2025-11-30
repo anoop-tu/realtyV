@@ -1,3 +1,5 @@
+// Admin Logout Page for RealtyView
+// Signs out the user and redirects to the admin login page
 import { createServerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';

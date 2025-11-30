@@ -1,3 +1,5 @@
+// Admin Dashboard Page for RealtyView
+// Implements admin analytics, property CRUD, CSV upload, and filter/sortable listings management
 "use client";
 
 import React, { useState } from 'react';

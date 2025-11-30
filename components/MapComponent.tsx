@@ -1,3 +1,5 @@
+// Map Component for RealtyView
+// Renders interactive map with property markers using React-Leaflet and OpenStreetMap
 
 import React, { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';

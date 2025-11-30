@@ -1,3 +1,5 @@
+// Slider UI component for RealtyView
+// Implements a styled, accessible range slider for price and other numeric filters
 import * as React from "react";
 
 export interface SliderProps extends React.InputHTMLAttributes<HTMLInputElement> {

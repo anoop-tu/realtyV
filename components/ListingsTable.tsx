@@ -1,3 +1,5 @@
+// Listings Table Component for RealtyView
+// Displays properties in a table for admin, supports edit/delete and data fetching
 "use client";
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";

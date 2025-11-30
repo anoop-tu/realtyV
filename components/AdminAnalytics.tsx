@@ -1,3 +1,5 @@
+// Admin Analytics Component for RealtyView
+// Displays property/user stats and recent activity for the admin dashboard
 "use client";
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";

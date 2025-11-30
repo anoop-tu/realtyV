@@ -1,3 +1,5 @@
+// Home page for RealtyView
+// Displays featured properties, hero section, and main entry point for users
 
 "use client";
 

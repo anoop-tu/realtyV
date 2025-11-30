@@ -1,3 +1,5 @@
+// Search Page for RealtyView
+// Implements property search, filtering, sorting, and map/list/grid views for users
 "use client";
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
