@@ -19,29 +19,17 @@ export default function AdminAnalytics() {
       const { count: totalProperties } = await supabase
         .from("properties")
         .select("id", { count: "exact", head: true });
-      const { count: propertiesThisMonth } = await supabase
+      const { data: propertiesThisMonthData } = await supabase
         .from("properties")
-        .select("id", {
-          count: "exact",
-          head: true,
-        })
-        .gte("created_at",
-          new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
+        .select("id")
+        .gte(
+          "created_at",
+          new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth(), 1)).toISOString()
         );
-      // Supabase JS client does not support .group(), so aggregate in JS
-      const { data: allTypes } = await supabase
-        .from("properties")
-        .select("type");
-      const byType: { type: string, count: number }[] = [];
-      if (allTypes) {
-        const typeMap: Record<string, number> = {};
-        for (const row of allTypes) {
-          if (row.type) typeMap[row.type] = (typeMap[row.type] || 0) + 1;
-        }
-        for (const type in typeMap) {
-          byType.push({ type, count: typeMap[type] });
-        }
-      }
+      const propertiesThisMonth = propertiesThisMonthData ? propertiesThisMonthData.length : 0;
+      // Use SQL aggregation for property types
+      const { data: byType } = await supabase
+        .rpc('property_type_counts');
       // Users by type
       const { data: allUsers } = await supabase
         .from("profiles")
@@ -57,34 +45,36 @@ export default function AdminAnalytics() {
         }
         brokerList = allUsers.filter((u: any) => u.role === 'broker');
       }
-      const { count: usersThisMonth } = await supabase
+      const { data: usersThisMonthData } = await supabase
         .from("profiles")
-        .select("id", { count: "exact", head: true })
-        .gte("created_at", new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString());
+        .select("id")
+        .gte(
+          "created_at",
+          new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth(), 1)).toISOString()
+        );
+      const usersThisMonth = usersThisMonthData ? usersThisMonthData.length : 0;
       // Recent properties
       const { data: recentProperties } = await supabase
         .from("properties")
         .select("id, title, created_at")
         .order("created_at", { ascending: false })
         .limit(5);
-      // Properties per broker
+      // Properties per broker (SQL aggregation)
       let brokerPropertyCounts: { broker_id: string, broker_name: string, broker_email: string, count: number }[] = [];
       if (brokerList.length > 0) {
-        // Fetch all properties with broker_id
-        const { data: allProperties } = await supabase
-          .from("properties")
-          .select("id, broker_id");
-        if (allProperties) {
-          const countMap: Record<string, number> = {};
-          for (const p of allProperties) {
-            if (p.broker_id) countMap[p.broker_id] = (countMap[p.broker_id] || 0) + 1;
-          }
-          brokerPropertyCounts = brokerList.map(b => ({
-            broker_id: b.id,
-            broker_name: b.name || b.email,
-            broker_email: b.email,
-            count: countMap[b.id] || 0
-          }));
+        // Use a Postgres function for aggregation
+        const { data: brokerCounts } = await supabase.rpc('broker_property_counts');
+        if (brokerCounts) {
+          // Merge with brokerList for name/email
+          brokerPropertyCounts = brokerList.map(b => {
+            const found = brokerCounts.find((c: any) => c.broker_id === b.id);
+            return {
+              broker_id: b.id,
+              broker_name: b.name || b.email,
+              broker_email: b.email,
+              count: found ? found.count : 0
+            };
+          });
         }
       }
       setStats({
