@@ -42,10 +42,21 @@ export default function AdminAnalytics() {
           byType.push({ type, count: typeMap[type] });
         }
       }
-      // Users
-      const { count: totalUsers } = await supabase
+      // Users by type
+      const { data: allUsers } = await supabase
         .from("profiles")
-        .select("id", { count: "exact", head: true });
+        .select("id, role, name, email");
+      let totalUsers = 0, brokers = 0, admins = 0, users = 0;
+      let brokerList: any[] = [];
+      if (allUsers) {
+        totalUsers = allUsers.length;
+        for (const u of allUsers) {
+          if (u.role === 'broker') brokers++;
+          else if (u.role === 'admin') admins++;
+          else users++;
+        }
+        brokerList = allUsers.filter((u: any) => u.role === 'broker');
+      }
       const { count: usersThisMonth } = await supabase
         .from("profiles")
         .select("id", { count: "exact", head: true })
@@ -56,6 +67,26 @@ export default function AdminAnalytics() {
         .select("id, title, created_at")
         .order("created_at", { ascending: false })
         .limit(5);
+      // Properties per broker
+      let brokerPropertyCounts: { broker_id: string, broker_name: string, broker_email: string, count: number }[] = [];
+      if (brokerList.length > 0) {
+        // Fetch all properties with broker_id
+        const { data: allProperties } = await supabase
+          .from("properties")
+          .select("id, broker_id");
+        if (allProperties) {
+          const countMap: Record<string, number> = {};
+          for (const p of allProperties) {
+            if (p.broker_id) countMap[p.broker_id] = (countMap[p.broker_id] || 0) + 1;
+          }
+          brokerPropertyCounts = brokerList.map(b => ({
+            broker_id: b.id,
+            broker_name: b.name || b.email,
+            broker_email: b.email,
+            count: countMap[b.id] || 0
+          }));
+        }
+      }
       setStats({
         totalProperties,
         propertiesThisMonth,
@@ -63,6 +94,10 @@ export default function AdminAnalytics() {
         totalUsers,
         usersThisMonth,
         recentProperties,
+        brokers,
+        admins,
+        users,
+        brokerPropertyCounts,
       });
       setLoading(false);
     }
@@ -73,7 +108,7 @@ export default function AdminAnalytics() {
   if (!stats) return <div className="py-8 text-center text-red-500">Failed to load analytics.</div>;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
       <Card>
         <h3 className="text-lg font-bold mb-2">Property Analytics</h3>
         <div className="mb-2">Total Properties: <b>{formatNumber(stats.totalProperties ?? 0)}</b></div>
@@ -89,8 +124,21 @@ export default function AdminAnalytics() {
         <h3 className="text-lg font-bold mb-2">User Analytics</h3>
         <div className="mb-2">Total Users: <b>{formatNumber(stats.totalUsers ?? 0)}</b></div>
         <div className="mb-2">New Users This Month: <b>{formatNumber(stats.usersThisMonth ?? 0)}</b></div>
+        <div className="mb-2">Brokers: <b>{formatNumber(stats.brokers ?? 0)}</b></div>
+        <div className="mb-2">Admins: <b>{formatNumber(stats.admins ?? 0)}</b></div>
+        <div className="mb-2">Users: <b>{formatNumber(stats.users ?? 0)}</b></div>
       </Card>
-      <Card className="md:col-span-2">
+      <Card>
+        <h3 className="text-lg font-bold mb-2">Properties per Broker</h3>
+        <ul>
+          {stats.brokerPropertyCounts?.length > 0 ? stats.brokerPropertyCounts.map((b: any) => (
+            <li key={b.broker_id} className="mb-1">
+              <span className="font-medium">{b.broker_name}</span> <span className="text-xs text-gray-500">({b.broker_email})</span>: <b>{formatNumber(b.count)}</b>
+            </li>
+          )) : <li>No brokers found.</li>}
+        </ul>
+      </Card>
+      <Card>
         <h3 className="text-lg font-bold mb-2">Recent Property Additions</h3>
         <ul>
           {stats.recentProperties?.map((p: any) => (
