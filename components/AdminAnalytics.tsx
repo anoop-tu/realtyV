@@ -13,6 +13,17 @@ export default function AdminAnalytics() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const cacheKey = 'admin-analytics-cache-v1';
+    const cacheTTL = 5 * 60 * 1000; // 5 minutes
+    const cached = typeof window !== 'undefined' ? localStorage.getItem(cacheKey) : null;
+    if (cached) {
+      const { data, ts } = JSON.parse(cached);
+      if (Date.now() - ts < cacheTTL) {
+        setStats(data);
+        setLoading(false);
+        return;
+      }
+    }
     async function fetchStats() {
       setLoading(true);
       // Properties
@@ -77,7 +88,7 @@ export default function AdminAnalytics() {
           });
         }
       }
-      setStats({
+      const analyticsData = {
         totalProperties,
         propertiesThisMonth,
         byType,
@@ -88,7 +99,11 @@ export default function AdminAnalytics() {
         admins,
         users,
         brokerPropertyCounts,
-      });
+      };
+      setStats(analyticsData);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(cacheKey, JSON.stringify({ data: analyticsData, ts: Date.now() }));
+      }
       setLoading(false);
     }
     fetchStats();

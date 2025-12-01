@@ -13,6 +13,10 @@ import { createBrowserClient } from '@supabase/auth-helpers-react';
 const MapComponent = dynamic(() => import('../../components/MapComponent'), { ssr: false });
 
 export default function SearchPage() {
+  // Pagination state (must be inside the component)
+  const [currentPage, setCurrentPage] = useState(1);
+  const PROPERTIES_PER_PAGE = 4;
+
   // Fetch properties from Supabase
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
@@ -120,7 +124,12 @@ export default function SearchPage() {
     if (sortOrder === 'price-desc') return b.price - a.price;
     return 0;
   });
+  // Reset to page 1 when filters, sort, or searchResults change
+  useEffect(() => { setCurrentPage(1); }, [sortOrder, typeParam, minPriceParam, maxPriceParam, searchResults]);
+
   const displayProperties = searchResults !== null ? searchResults : filteredProperties;
+  const totalPages = Math.ceil(displayProperties.length / PROPERTIES_PER_PAGE);
+  const paginatedProperties = displayProperties.slice((currentPage - 1) * PROPERTIES_PER_PAGE, currentPage * PROPERTIES_PER_PAGE);
 
   // Responsive: show tabs on mobile, split view on desktop
   return (
@@ -226,7 +235,40 @@ export default function SearchPage() {
               ) : displayProperties.length === 0 ? (
                 <div className="p-4 text-center text-gray-500">No results found for your search.</div>
               ) : (
-                <ListingGrid properties={displayProperties} activePropertyId={activePropertyId} favoriteIds={favoriteIds} grid={viewType === 'grid'} />
+                <>
+                  <ListingGrid properties={paginatedProperties} activePropertyId={activePropertyId} favoriteIds={favoriteIds} grid={viewType === 'grid'} />
+                  {/* Pagination Controls */}
+                  {totalPages > 1 && (
+                    <div className="flex justify-center items-center gap-2 mt-6">
+                      <button
+                        className="px-3 py-1 rounded bg-gray-100 text-gray-700 text-sm font-medium border border-gray-200 disabled:opacity-50"
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        aria-label="Previous page"
+                      >
+                        Previous
+                      </button>
+                      {Array.from({ length: totalPages }, (_, i) => (
+                        <button
+                          key={i}
+                          className={`px-3 py-1 rounded text-sm font-medium border border-gray-200 ${currentPage === i + 1 ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                          onClick={() => setCurrentPage(i + 1)}
+                          aria-label={`Page ${i + 1}`}
+                        >
+                          {i + 1}
+                        </button>
+                      ))}
+                      <button
+                        className="px-3 py-1 rounded bg-gray-100 text-gray-700 text-sm font-medium border border-gray-200 disabled:opacity-50"
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        aria-label="Next page"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           ) : null}
