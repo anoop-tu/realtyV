@@ -1,6 +1,10 @@
+"use client";
+
+import BrokerSelectField from "./BrokerSelectField";
+import { fetchAllBrokers } from "../lib/fetchAllBrokers";
 // Property Form Component for RealtyView
 // Handles add/edit property form, validation, image upload, and submission logic
-"use client";
+
 import { createBrowserClient } from '@supabase/auth-helpers-react';
 import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
@@ -39,7 +43,14 @@ interface PropertyFormProps {
 const PropertyForm: React.FC<PropertyFormProps> = ({ property, onDone }) => {
   const [images, setImages] = useState<{ id: string; url: string }[]>([]);
   const [removingImageId, setRemovingImageId] = useState<string | null>(null);
+  const [brokers, setBrokers] = useState<any[]>([]);
+  const [selectedBrokerId, setSelectedBrokerId] = useState<string>("");
   const router = useRouter();
+
+  // Fetch brokers for admin dropdown
+  useEffect(() => {
+    fetchAllBrokers().then(setBrokers).catch(() => setBrokers([]));
+  }, []);
 
   const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<PropertyFormValues>({
     resolver: zodResolver(propertySchema),
@@ -52,7 +63,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onDone }) => {
     } : { featured: false },
   });
 
-  // When property changes, reset form and fetch images for editing
+  // When property changes, reset form, fetch images, and sync broker
   useEffect(() => {
     if (property) {
       reset({
@@ -62,6 +73,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onDone }) => {
         lng: property?.lng ?? 0,
         featured: property?.featured ?? false,
       });
+      setSelectedBrokerId(property?.broker_id || "");
       // Fetch images for this property from Supabase
       const fetchImages = async () => {
         if (!property?.id) return;
@@ -79,6 +91,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onDone }) => {
     } else {
       reset();
       setImages([]);
+      setSelectedBrokerId("");
     }
   }, [property, reset]);
   // Remove image handler
@@ -106,7 +119,13 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onDone }) => {
    * - Inserts or updates property in Supabase
    * - Inserts media records for uploaded images
    */
-  const { onSubmit, uploading, message, setMessage } = usePropertyFormSubmit(property, reset, router, onDone);
+  // Wrap the onSubmit to include broker_id
+  const { onSubmit: baseOnSubmit, uploading, message, setMessage } = usePropertyFormSubmit(property, reset, router, onDone);
+  const onSubmit = async (data: any) => {
+    // Add broker_id to data if selected
+    const submitData = { ...data, broker_id: selectedBrokerId };
+    await baseOnSubmit(submitData);
+  };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -125,6 +144,15 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onDone }) => {
         onRemoveImage={handleRemoveImage}
         register={register}
       />
+
+      {/* Broker select dropdown for admin edit */}
+      {brokers.length > 0 && (
+        <BrokerSelectField
+          brokers={brokers}
+          value={selectedBrokerId}
+          onChange={setSelectedBrokerId}
+        />
+      )}
       
       <div className="flex items-center gap-2">
         <input type="checkbox" id="featured" {...register('featured')} className="w-4 h-4" />

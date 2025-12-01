@@ -52,6 +52,7 @@ export function usePropertyFormSubmit(property: any, reset: any, router: any, on
             features: data.features || {},
             status: 'active',
             featured: data.featured ?? false,
+            broker_id: data.broker_id || null,
           })
           .eq('id', property.id)
           .select()
@@ -73,6 +74,7 @@ export function usePropertyFormSubmit(property: any, reset: any, router: any, on
             features: data.features || {},
             status: 'active',
             featured: data.featured ?? false,
+            broker_id: data.broker_id || null,
           })
           .select()
           .single();
