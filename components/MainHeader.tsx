@@ -3,6 +3,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { UserCircle2 } from "lucide-react";
+import EditProfileModal from "@/components/EditProfileModal";
 import Link from "next/link";
 import { createBrowserClient } from '@supabase/auth-helpers-react';
 import type { Profile } from "@/types/profiles";
@@ -11,6 +13,8 @@ export default function MainHeader() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     const supabase = createBrowserClient(
@@ -59,16 +63,46 @@ export default function MainHeader() {
             <Link href="/admin/dashboard" className="text-gray-700 hover:text-blue-700">Admin</Link>
           )}
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 relative">
           {loading ? null : user ? (
             <>
-              <span className="text-gray-700 text-sm">{user.email}</span>
               <button
-                onClick={handleLogout}
-                className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 text-sm"
+                className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-blue-100 focus:outline-none"
+                onClick={() => setShowDropdown((v) => !v)}
+                aria-label="User menu"
               >
-                Logout
+                <UserCircle2 className="w-7 h-7 text-blue-700" />
               </button>
+              {showDropdown && (
+                <div className="absolute right-0 top-12 bg-white border rounded-lg shadow-lg min-w-[220px] z-50 p-4">
+                  <div className="mb-2">
+                    <div className="text-xs text-gray-500">Email</div>
+                    <div className="font-medium text-gray-800 break-all">{user.email}</div>
+                  </div>
+                  <div className="mb-2">
+                    <div className="text-xs text-gray-500">Name</div>
+                    <div className="font-medium text-gray-800 break-all">{profile?.name || '-'}</div>
+                  </div>
+                  <button
+                    className="w-full text-left px-2 py-1 rounded hover:bg-blue-50 text-blue-700 font-medium text-sm mb-2"
+                    onClick={() => { setShowEditModal(true); setShowDropdown(false); }}
+                  >
+                    Edit Profile
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-2 py-1 rounded hover:bg-blue-50 text-red-600 font-medium text-sm"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+              <EditProfileModal
+                open={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                profile={profile}
+                onProfileUpdate={p => setProfile(p)}
+              />
             </>
           ) : (
             <Link href="/admin/login" className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 text-sm">Login</Link>
