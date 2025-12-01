@@ -18,6 +18,8 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const [keyword, setKeyword] = useState("");
+  const [searchResults, setSearchResults] = useState<Property[] | null>(null);
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -27,10 +29,10 @@ export default function SearchPage() {
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       );
-      // Fetch properties
+      // Fetch properties with broker profile (join)
       const { data: propertiesData, error } = await supabase
         .from('properties')
-        .select('*')
+        .select('*, profiles:broker_id(id, email, name)')
         .eq('status', 'active')
         .order('created_at', { ascending: false });
       if (error) {
@@ -55,10 +57,11 @@ export default function SearchPage() {
           }
         }
       }
-      // Attach images array to each property
+      // Attach images array and broker_name to each property
       const propertiesWithImages = (propertiesData || []).map((p: any) => ({
         ...p,
         images: imagesByProperty[p.id] || [],
+        broker_name: p.profiles?.name || p.profiles?.email || '',
       }));
       setProperties(propertiesWithImages);
       setLoading(false);
@@ -94,18 +97,67 @@ export default function SearchPage() {
     const maxMatch = maxPrice === null || p.price <= maxPrice;
     return typeMatch && minMatch && maxMatch;
   });
+  // Keyword search logic
+  const handleKeywordSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const kw = keyword.trim().toLowerCase();
+    if (!kw) {
+      setSearchResults(null);
+      return;
+    }
+    // Search by property title, address, or broker name
+    const results = filteredProperties.filter((p: any) => {
+      const titleMatch = p.title?.toLowerCase().includes(kw);
+      const addressMatch = p.address?.toLowerCase().includes(kw);
+      const brokerMatch = p.broker_name?.toLowerCase().includes(kw);
+      return titleMatch || addressMatch || brokerMatch;
+    });
+    setSearchResults(results);
+  };
   // Sort by price
   filteredProperties = [...filteredProperties].sort((a, b) => {
     if (sortOrder === 'price-asc') return a.price - b.price;
     if (sortOrder === 'price-desc') return b.price - a.price;
     return 0;
   });
+  const displayProperties = searchResults !== null ? searchResults : filteredProperties;
 
   // Responsive: show tabs on mobile, split view on desktop
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 via-white to-blue-100 py-6">
       <div className="container mx-auto max-w-7xl">
 
+        {/* Keyword Search Card */}
+        <div className="w-full mb-4">
+          <form onSubmit={handleKeywordSearch} className="bg-white rounded-2xl shadow-lg px-6 py-4 border border-blue-100 flex flex-col md:flex-row md:items-center gap-4">
+            <h2 className="text-lg font-semibold text-blue-700 flex items-center gap-2 mb-2 md:mb-0">
+              <span className="inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
+              Keyword Search
+            </h2>
+            <input
+              type="text"
+              placeholder="Search by property name, address, or broker name..."
+              value={keyword}
+              onChange={e => setKeyword(e.target.value)}
+              className="flex-1 border border-blue-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+            />
+            <button
+              type="submit"
+              className="px-4 py-2 rounded bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition"
+            >
+              Search
+            </button>
+            {searchResults !== null && (
+              <button
+                type="button"
+                className="px-3 py-2 rounded bg-gray-100 text-gray-700 text-xs font-medium hover:bg-gray-200 transition border border-gray-200"
+                onClick={() => { setKeyword(""); setSearchResults(null); }}
+              >
+                Clear
+              </button>
+            )}
+          </form>
+        </div>
         {/* Filters Bar */}
         <div className="w-full mb-8">
           <div className="bg-white rounded-2xl shadow-lg px-6 py-4 border border-blue-100 flex flex-col md:flex-row md:items-center gap-4">
@@ -171,8 +223,10 @@ export default function SearchPage() {
                 <div className="p-4 text-center text-gray-500">Loading properties...</div>
               ) : error ? (
                 <div className="p-4 text-center text-red-500">{error}</div>
+              ) : displayProperties.length === 0 ? (
+                <div className="p-4 text-center text-gray-500">No results found for your search.</div>
               ) : (
-                <ListingGrid properties={filteredProperties} activePropertyId={activePropertyId} favoriteIds={favoriteIds} grid={viewType === 'grid'} />
+                <ListingGrid properties={displayProperties} activePropertyId={activePropertyId} favoriteIds={favoriteIds} grid={viewType === 'grid'} />
               )}
             </div>
           ) : null}

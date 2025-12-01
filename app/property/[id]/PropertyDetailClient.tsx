@@ -1,6 +1,19 @@
 // Property Detail Client Component for RealtyView
 // Handles property data fetching, favorite logic, contact form, and map display
 "use client";
+
+import L from "leaflet";
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
+
+// Fix Leaflet's default icon path for Next.js
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x.src,
+  iconUrl: markerIcon.src,
+  shadowUrl: markerShadow.src,
+});
+
 import React, { useState, useEffect } from "react";
 import { createBrowserClient } from '@supabase/auth-helpers-react';
 import { Input } from "@/components/ui/input";
@@ -22,10 +35,10 @@ export default function PropertyDetailClient({ id }: { id: string }) {
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       );
-      // Fetch property by id
+      // Fetch property by id, join broker profile
       const { data, error } = await supabase
         .from('properties')
-        .select('*')
+        .select('*, profiles:broker_id(id, email, name)')
         .eq('id', id)
         .single();
       if (error) {
@@ -40,6 +53,8 @@ export default function PropertyDetailClient({ id }: { id: string }) {
         setProperty({
           ...data,
           images: media && media.length > 0 ? media.map((m: any) => m.url) : [],
+          broker_name: data.profiles?.name || '',
+          broker_email: data.profiles?.email || '',
         });
       }
     };
@@ -159,9 +174,15 @@ export default function PropertyDetailClient({ id }: { id: string }) {
           </MapContainer>
         </div>
       </div>
-      {/* Contact Form */}
+      {/* Broker Details & Contact Form */}
       <aside className="md:col-span-1 bg-white rounded-xl shadow-lg p-6 h-fit">
         <h2 className="text-xl font-bold mb-4">Contact Broker</h2>
+        <div className="mb-4 p-3 rounded bg-blue-50 border border-blue-100 text-blue-900">
+          <div className="font-semibold">Broker Name:</div>
+          <div className="break-all mb-2">{property.broker_name || 'N/A'}</div>
+          <div className="font-semibold">Broker Email:</div>
+          <div className="break-all">{property.broker_email || 'N/A'}</div>
+        </div>
         {submitted ? (
           <div className="text-green-600 font-semibold">Inquiry sent!</div>
         ) : (
