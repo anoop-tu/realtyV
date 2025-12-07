@@ -45,6 +45,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onDone }) => {
   const [removingImageId, setRemovingImageId] = useState<string | null>(null);
   const [brokers, setBrokers] = useState<any[]>([]);
   const [selectedBrokerId, setSelectedBrokerId] = useState<string>("");
+  const [brokerError, setBrokerError] = useState<string>("");
   const router = useRouter();
 
   // Fetch brokers for admin dropdown
@@ -122,8 +123,18 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onDone }) => {
   // Wrap the onSubmit to include broker_id
   const { onSubmit: baseOnSubmit, uploading, message, setMessage } = usePropertyFormSubmit(property, reset, router, onDone);
   const onSubmit = async (data: any) => {
-    // Add broker_id to data if selected
-    const submitData = { ...data, broker_id: selectedBrokerId };
+    setBrokerError("");
+    if (brokers.length > 0 && !selectedBrokerId) {
+      setBrokerError("Please select a broker.");
+      return;
+    }
+    const submitData = {
+      ...data,
+      broker_id: selectedBrokerId,
+      price: Number(data.price),
+      lat: Number(data.lat),
+      lng: Number(data.lng),
+    };
     await baseOnSubmit(submitData);
   };
 
@@ -136,6 +147,8 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onDone }) => {
       )}
       
       <PropertyBasicInfoFields register={register} errors={errors} />
+
+      <PropertyLocationFields register={register} errors={errors} />
       
       <PropertyImageUpload
         images={images}
@@ -147,11 +160,14 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ property, onDone }) => {
 
       {/* Broker select dropdown for admin edit */}
       {brokers.length > 0 && (
-        <BrokerSelectField
-          brokers={brokers}
-          value={selectedBrokerId}
-          onChange={setSelectedBrokerId}
-        />
+        <>
+          <BrokerSelectField
+            brokers={brokers}
+            value={selectedBrokerId}
+            onChange={setSelectedBrokerId}
+          />
+          {brokerError && <div className="text-red-500 text-sm mt-1">{brokerError}</div>}
+        </>
       )}
       
       <div className="flex items-center gap-2">
