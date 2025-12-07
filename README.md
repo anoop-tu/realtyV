@@ -155,6 +155,6 @@ RealtyView is a modern, full-stack real estate MVP inspired by platforms like 99
 
 ---
 
-## 📣 Contact
-
-For questions or contributions, open an issue or pull request on GitHub.
+## 📣 Disclaimer
+ - 100% vibe coded !!!
+ - It just works !!!
